@@ -1,0 +1,402 @@
+\documentclass[12pt]{article}
+
+\usepackage[
+   paperheight = 11in,
+   paperwidth = 8.5in,
+   margin = 1in,
+   footskip = 0.45in] {geometry} %  custom paper size and margins
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{adjustbox}
+\usepackage{color} %  custom colors
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hhline}
+\usepackage{titlesec}
+\usepackage{hyphenat}
+\usepackage{array}
+\usepackage{color} %  custom colors
+\usepackage{graphicx}
+\usepackage{listings, upquote, textcomp} %  "\lstinline{ }" for inline code
+\usepackage[
+   colorlinks = true,
+   linkcolor = darkblue,
+   urlcolor = darkblue,
+   hypertexnames = false]{hyperref}
+
+\renewcommand{\vec}[1]     {\underline{#1}}
+\setlength{\tabcolsep}{10pt}
+\def\arraystretch{1.2}
+\definecolor{gray}         {rgb}{0.50,0.50,0.50}
+\definecolor{darkblue}     {rgb}{0.00,0.00,0.50}
+\renewcommand{\labelenumi}{\arabic{enumi}.}
+\renewcommand{\labelenumii}{\alph{enumii}.}
+\setlength{\parindent}{0em}
+\setlength{\parskip}{10pt plus 2pt minus 2pt}
+\titlespacing\section{0pt}{10pt plus 2pt minus 2pt}{0pt plus 2pt minus 2pt}
+\raggedbottom
+\newcolumntype{L}[1]{>{
+   \raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{C}[1]{>{
+   \centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{R}[1]{>{
+   \raggedleft\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\lstdefinestyle{lstMat} {
+   language = matlab,
+   backgroundcolor = {},
+   breakatwhitespace = true,
+   breaklines = true,
+   postbreak = \space,
+   breakindent = 4ex,
+   showstringspaces = false,
+   basicstyle = %
+      \lst@ifdisplaystyle\small\fi
+      \ttfamily, %  48 chars in 3.5 in
+   commentstyle = \color{gray},
+   stringstyle = \color{red},
+   keywordstyle = \color{blue},
+   tabsize = 3,
+   upquote = true}
+\lstset{style = lstMat} %  Default syntax.
+
+\definecolor{black}        {rgb}{0.00,0.00,0.00}
+\definecolor{blue}         {rgb}{0.00,0.00,1.00}
+\definecolor{azure}        {rgb}{0.00,0.40,1.00}
+\definecolor{cyan}         {rgb}{0.00,0.80,1.00}
+\definecolor{aqua}         {rgb}{0.00,0.80,0.50}
+\definecolor{green}        {rgb}{0.00,0.60,0.00}
+\definecolor{lime}         {rgb}{0.50,0.80,0.00}
+\definecolor{yellow}       {rgb}{1.00,0.80,0.00}
+\definecolor{orange}       {rgb}{1.00,0.40,0.00}
+\definecolor{red}          {rgb}{1.00,0.00,0.00}
+\definecolor{pink}         {rgb}{1.00,0.00,0.50}
+\definecolor{magenta}      {rgb}{1.00,0.00,1.00}
+\definecolor{purple}       {rgb}{0.50,0.00,1.00}
+\definecolor{darkblue}     {rgb}{0.00,0.00,0.50}
+\definecolor{gray}         {rgb}{0.50,0.50,0.50}
+\definecolor{lightgray}    {rgb}{0.80,0.80,0.80}
+\definecolor{shade}        {rgb}{0.95,0.95,0.95}
+\definecolor{white}        {rgb}{1.00,1.00,1.00}
+\newcommand{\textbk}[1]    {{\color{black}{#1}}}
+\newcommand{\textbl}[1]    {{\color{blue}{#1}}}
+\newcommand{\textaz}[1]    {{\color{azure}{#1}}}
+\newcommand{\textcy}[1]    {{\color{cyan}{#1}}}
+\newcommand{\textaq}[1]    {{\color{aqua}{#1}}}
+\newcommand{\textgr}[1]    {{\color{green}{#1}}}
+\newcommand{\textlm}[1]    {{\color{lime}{#1}}}
+\newcommand{\textyw}[1]    {{\color{yellow}{#1}}}
+\newcommand{\textor}[1]    {{\color{orange}{#1}}}
+\newcommand{\textrd}[1]    {{\color{red}{#1}}}
+\newcommand{\textpk}[1]    {{\color{pink}{#1}}}
+\newcommand{\textmg}[1]    {{\color{magenta}{#1}}}
+\newcommand{\textpu}[1]    {{\color{purple}{#1}}}
+\newcommand{\textdb}[1]    {{\color{darkblue}{#1}}}
+\newcommand{\textgy}[1]    {{\color{gray}{#1}}}
+\newcommand{\textlg}[1]    {{\color{lightgray}{#1}}}
+\newcommand{\textsh}[1]    {{\color{shade}{#1}}}
+\newcommand{\textwh}[1]    {{\color{white}{#1}}}
+
+\begin{document}
+%  Header
+\begin{minipage}{0.9\textwidth}
+   \raggedright
+   \large \textbf{\textsf{{\color{gray}EENG 533: Navigation Using GPS} \\
+      Project 6: Calculation of Position from GPS Measurements}}
+\end{minipage}
+\vspace{1cm}
+
+\section*{\textsf{Theory}}
+
+\paragraph{Pseudoranges and Space Vehicle Positions}
+
+The true distance, $\rho$, to a GPS satellite (also known as a space vehicle) is
+the speed of light, $c$, times the difference of the true receive time,
+$t_{rx}$, and the transmit time, $t_{sv}$ (the space vehicle's time):
+\[ \rho = c\cdot \left( t_{rx} - t_{sv} \right) . \]
+Unfortunately, both the space vehicle's time and the receiver's time have clock
+errors ($\delta t_{sv}$ and $\delta t_{rx}$).  What we actually know are the
+approximate times:
+\begin{align*}
+   \hat{t}_{sv} &= t_{sv} + \delta t_{sv} \\
+   \hat{t}_{rx} &= t_{rx} + \delta t_{rx} .
+\end{align*}
+So, we do not get the true range from our measurements.  Rather, our GPS
+receiver automatically calculates for us an apparent pseudorange, $\hat{\rho}$,
+based on the receiver's approximate clock time, $\hat{t}_{rx}$, and the space
+vehicle's approximate clock time, $\hat{t}_{sv}$, indicated in the GPS signal.
+This pseudorange contains both the space vehicle's clock error, $\delta t_{sv}$,
+as well as the receiver's clock error, $\delta t_{rx}$:
+\[ \hat{\rho} = c\cdot \left( \hat{t}_{rx} - \hat{t}_{sv} \right) \]
+\[ \to \hat{\rho} = c\cdot \left( t_{rx} + \delta t_{rx} \right)
+   - c\cdot \left( t_{sv} + \delta t_{sv} \right) \]
+such that the relationship to the true range is
+\[ \rho = \hat{\rho} + c\; \delta t_{sv} - c\; \delta t_{rx} . \]
+
+We can use the equation we learned on week 3 to estimate the space vehicle's
+clock error:
+\[ \delta t_{sv} = a_{f_0} + a_{f_1} \left( t_{sv} - t_{0_c} \right)
+   + a_{f_2} \left( t_{sv} - t_{0_c} \right)^2 + \delta t_{rel} . \]
+However, this is a function of the space vehicle's time, $t_{sv}$, which we do
+not have yet.  So, we will solve this in a somwhat interative manner.  The first
+thing we need to calculate is the approximate space vehicle time:
+\[ \hat{t}_{sv} = \hat{t}_{rx} - \frac{\hat{\rho}}{c} . \]
+Hint: this should be the first step in your \lstinline{calc_rx_pos} function!
+Then, we will use this value as an approximation to $t_{sv}$ in the week 3
+equation and we will disregard the relativistic correction term, $\delta
+t_{rel}$, because we do not need this much accuracy yet:
+\[ \delta t_{sv}' = a_{f_0} + a_{f_1} \left( \hat{t}_{sv} - t_{0_c} \right)
+   + a_{f_2} \left( \hat{t}_{sv} - t_{0_c} \right)^2 . \]
+(The coefficients $a_{f_0}$, $a_{f_1}$, $a_{f_2}$, and $t_{0_c}$ come from the
+ephemeris data for each given space vehicle.)  Now we can get a better
+approximation of the true space vehicle time:
+\[ t_{sv}' = \hat{t}_{sv} - \delta t_{sv}' . \]
+
+The \lstinline{calc_sv_pos} function will calculate more carefully the space
+vehicle's clock error using the above time ($t_{sv}'$) and the receiver's
+position.  But, since we do not yet know the receiver's position, we will use
+the \lstinline{pos_rx} value sent to your \lstinline{calc_rx_pos} function as an
+input.  This will be the output of your function from the previous time step
+(epoch).  The \lstinline{project6_template.py} script will start this whole process with
+the center of the Earth as the least biased guess:
+\begin{lstlisting}
+   pos_rx = np.array([0.0, 0.0, 0.0])
+\end{lstlisting}
+\noindent So, we just call the \lstinline{calc_sv_pos} function (only once per 
+observation time epoch) as follows:
+\begin{lstlisting}
+   [pos_sv, dt_sv] = calc_sv_pos(ephem, t_sv_prime, pos_rx);
+\end{lstlisting}
+\noindent where \lstinline{pos_rx} is the receiver's position,
+\lstinline{t_sv_prime} is the $t_{sv}'$ from above, \lstinline{pos_sv} is the
+space vehicle's position, $[x_{sv}, y_{sv}, z_{sv}]$, and \lstinline{dt_sv} is
+the space vehicle's clock error, $\delta t_{sv}$.  The \lstinline{calc_sv_pos}
+function uses the receiver's position to adjust the space vehicle's position for
+the rotation of the Earth during the propagation of the signal through space.
+The poor guess of the receiver's position (the center of the Earth) will cause
+some error for the first epoch.  But, after the first epoch, the receiver's
+position will be better known and little error will remain.
+
+If we are using a single frequency (which we are) we need to remove the group
+delay correction:
+\[ \delta t_{sv} = \delta t_{sv} - T_{GD} . \]
+(This group delay value $T_{GD}$ comes from the ephemeris data for each given
+space vehicle.)  The improved estimate of the space vehicle's clock error,
+$\delta t_{sv}$, (\lstinline{dt_sv} above) can be used to get a better estimate
+of the range, $\rho'$:
+\[ \rho' = \hat{\rho} + c\; \delta t_{sv} . \]
+This is still a pseudorange which has in it the receiver's clock error.  But,
+this pseudorange is good enough because in the next step we will calculate
+$\delta t_{rx}$ and the receiver's location using two things: the calculated
+space vehicle's position, \lstinline{pos_sv}, and the pseudorange, $\rho'$.  So,
+the results of this first part of your function should be a vector of
+pseudoranges, $\vec{\rho}'$, and a matrix of positions, $[\vec{x}_{sv},\
+\vec{y}_{sv},\ \vec{z}_{sv}]$.  (We notate vectors with underlines.)
+
+\paragraph{Receiver Position and Clock Error}
+
+If we have a set of pseudoranges, $\vec{\rho}'$, with the $\delta t_{sv}$ errors
+removed and a set of corresponding space vehicle positions, $[\vec{x}_{sv},\
+\vec{y}_{sv},\ \vec{z}_{sv}]$, we can iteratively calculate the position of the
+receiver and the receiver's clock error which would be required for all those
+pseudoranges to make sense.  We would use a guess for the receiver's position
+and clock error to calculate what the pseudoranges to the space vehicles would
+be, compare those pseudoranges to the $\vec{\rho}'$ values we already
+calculated, and adjust our receiver's position and clock error accordingly.  We
+do this until we begin to get consistent results.  This process is the
+Taylor-series approximation that was explained in the lecture and is the same
+concept as the Newton-Raphson technique.
+
+First, we need to define a state vector.  It is the concatenation of two of the
+function inputs: the receiver's position and the receiver's clock error, with
+the speed of light factored in:
+\[ \vec{x} = [ x_{rx} \ \ y_{rx} \ z_{rx} \ \ c\; \delta t_{rx} ]^\top . \]
+
+There are two ways to get the pseudorange to a space vehicle.  The first is
+time-based and is what we did in the previous step to get the $\rho'$ values.
+The second is position-based and requires the positions of the space vehicles,
+the position of the receiver, and the receiver's clock error:
+\begin{equation}
+   \vec{\tilde{\rho}} = \vec{r} + x_4
+   \label{eq_rho_tilde}
+\end{equation}
+\[ \vec{r} = \sqrt{
+   \left( \vec{x}_{sv} - x_1 \right)^2
+      + \left( \vec{y}_{sv} - x_2 \right)^2
+      + \left( \vec{z}_{sv} - x_3 \right)^2 } , \]
+where $x_j$ is the $j$th element of $\vec{x}$.  Now, we can get the errors in
+our distance-based pseudoranges:
+\[ \delta \vec{\rho} = \vec{\rho}' - \vec{\tilde{\rho}} . \]
+
+We need a way to relate these errors in pseudoranges to errors in the
+$\vec{x}$ vector.  This relationship is the Jacobian matrix of
+\eqref{eq_rho_tilde} with respect to the states of the state vector $\vec{x}$:
+\[ \bm{H} = \begin{bmatrix}
+      -\dfrac{\vec{x}_{sv} - x_1}{\vec{r}} &
+      -\dfrac{\vec{y}_{sv} - x_2}{\vec{r}} &
+      -\dfrac{\vec{z}_{sv} - x_3}{\vec{r}} & \vec{1}
+   \end{bmatrix} . \]
+The Jacobian relates the error in pseudoranges to the error in the state vector,
+$\vec{x}$, this way:
+\[ \delta \vec{\rho} = \bm{H} \delta \vec{x} . \]
+So, to solve for the error in the state vector, we would use the pseudoinverse
+of $\bm{H}$:
+\[ \delta \vec{x} = (\bm{H}^\top \bm{H})^{-1} \bm{H}^\top
+   \delta \vec{\rho} . \]
+Be sure to use matrix multiplication operations (e.g. \lstinline{np.matmul()}, 
+or the \lstinline{@} symbol).  Then, we can adjust our state vector with its error:
+\[ \vec{x} = \vec{x} + \delta \vec{x} . \]
+
+We repeat this loop, starting with equation \eqref{eq_rho_tilde}, while the
+\lstinline{norm} of $\delta \vec{x}$ is greater than 10.  When we are done with
+the loop, our receiver's position and clock error will be
+\[ x_{rx} = x_1 \qquad
+   y_{rx} = x_2 \qquad
+   z_{rx} = x_3 \qquad
+   \delta t_{rx} = \frac{x_4}{c} \]
+and the residuals will be
+\[ \vec{v} = \delta \vec{\rho} - \bm{H} \delta \vec{x} . \]
+
+\section*{\textsf{Objectives}}
+
+\begin{itemize}
+   \item Develop an algorithm to perform single-point, single-frequency
+      positioning using pseudorange measurements
+   \item Understand some of the errors in your solution by comparing to a known
+      location
+\end{itemize}
+
+\section*{\textsf{Collaboration}}
+
+This is an individual laboratory.  You may discuss this lab with other students.
+However, all source code that you generate and use and anything you turn in must
+be your own.
+
+\section*{\textsf{Task A: Write your \lstinline{calc_rx_pos} function}}
+
+In this lab, you are given an hour of GPS RINEX observation data (\lstinline{*.YYo} file) and
+the corresponding RINEX navigation (ephemeris) data (\lstinline{*.YYn} file).  Be sure 
+to utilize the provided \lstinline{helper.py} and \lstinline{ephemeris.py} files as they have 
+changed slightly from previous projects.  You will also need to utilize the previously 
+developed \lstinline{calc_sv_pos} function.
+
+
+The \lstinline{project6_template.py} script will load the observation and
+ephemeris data.  It will iterate through each of the epochs of time in the
+observation data, parsing out the PRNs and $\hat{\rho}$ values (L1 C/A-code
+pseudoranges) from the observation data for the given epoch.  The script will
+call your function.  Your function will then calculate the receiver's position
+and clock error using single-point, single-frequency positioning.  It should
+have the following interface:
+\begin{lstlisting}
+[pos_rx, dt_rx, v] = calc_rx_pos(prn_array, rho_hat_array, t_rx_hat, ephem_list, pos_rx, dt_rx)
+\end{lstlisting}
+where
+\begin{center}
+   \begin{tabular}{l|c|l}
+      Variable & Size & Description \\
+      \hline
+      \texttt{prn\_array}         & $N$ & PRN values \\
+      \texttt{rho\_hat\_array}    & $N$ & pseudoranges, $\hat{\rho}$ \\
+      \texttt{t\_rx\_hat}  & $1$ & receiver time, $\hat{t}_{rx}$ \\
+	\texttt{ephem\_list}  & $N$ & list of ephemeris objects \\
+      \texttt{pos\_rx}     & $3$ & receiver position,
+         $[x_{rx},\ y_{rx},\ z_{rx}]$ \\
+      \texttt{dt\_rx}      & $1$ & receiver clock error,
+         $\delta t_{rx}$ \\
+      \texttt{v}           & $N$ & residuals, $\vec{v}$
+   \end{tabular}
+\end{center}
+In the above table, $N$ is the number of space vehicles available during that
+epoch to help locate the receiver.  Your code should follow these steps in order
+to calculate the position and clock error of each space vehicle:
+\begin{enumerate}
+   \item Get $\hat{t}_{sv}$
+   \item Get the ephemeris data for that space vehicle, estimate the clock error
+      (without the relativistic correction term), and remove the clock error
+      from $\hat{t}_{sv}$
+   \item Call \lstinline{calc_sv_pos} to get the space vehicle's position and
+      more accurate clock error
+   \item For single-frequency positioning, remove the group delay
+   \item Remove the effect of the space vehicle's clock error from its
+      pseudorange
+\end{enumerate}
+For each space vehicle identified in the call to your function, you should now
+have a pseudorange with $c\; \delta t_{sv}$ removed and a position for the space
+vehicle in ECEF coordinates.  With the set of corrected pseudoranges and space
+vehicle positions, follow the steps outlined in the \textbf{Theory} section to
+get the receiver's position and single clock error.
+
+The \lstinline{project6_template.py} script will continue from there to store the values
+returned by your function.  It will print the true receiver
+position and your calculated receiver position for the second time epoch.  The true
+position (ECEF coordinates in meters and obtained from the online \href{https://geodesy.noaa.gov/OPUS/}
+{OPUS tool}) is
+\begin{lstlisting}
+True Position = 
+[  497796.51 -4884306.58  4058066.62]
+\end{lstlisting}
+There will be a discrepancy; that is expected.  To verify that your function is
+working correctly, make sure your are getting exactly the following for the \textbf{second epoch}:
+\begin{lstlisting}
+pos_rx_array[1, :] = 
+[  497794.82 -4884316.34  4058076.96]
+
+v_array[1, :] = 
+[-1.3    nan  5.42   nan   nan   nan -4.03 -1.22   nan   nan   nan   nan
+ -0.66  1.04   nan   nan  1.24   nan -0.56   nan -2.54 -0.18   nan   nan
+   nan   nan   nan  2.88   nan -0.08   nan   nan]
+\end{lstlisting}
+The second time epoch is chosen to avoid the problems associated with
+initializing at the center of the earth for the first epoch.
+
+Finally, the \lstinline{project6_template.py} script will convert your calculated
+receiver position to an East, North, Up (ENU) local level frame.  It uses the
+true position of the receiver as the origin.  So, these are position errors now.
+
+\section*{\textsf{Task B: Evaluate accuracy of your algorithm}}
+
+Towards the bottom of the \lstinline{project6_template.py} script, add plotting code and
+comments.  Generate the following plots:
+\begin{enumerate}
+   \item A plot of the PRNs of the satellites used in the solution vs. time (sec of day).
+      (Hint: plot PRNs vs. time using dots)
+   \item ENU errors vs. time.  Plot all three as separate lines on the same
+      axis.
+   \item A horizontal map of the errors (East on x axis and North on y axis).
+      This map should be scaled such that 1~m of error in the east direction is
+      the same visible length as 1~m of error in the North direction.
+   \item A plot of the receiver clock error vs. time
+   \item A plot of the range residuals as a function of time.  (Hint: plot as
+      individual points to avoid connecting lines)
+\end{enumerate}
+
+Make sure that all plots are correctly labeled.  That means give (1) a description of the
+value and (2) units (use `ND' for non-dimensional).  As an example, a time axis
+would be ``Time [s]''.  Answer questions such as, but not limited to the following:
+\begin{itemize}
+   \item What are the errors like?
+   \item Is any axis worse than the others?
+   \item How quickly do the errors change?
+   \item Are there any anomalies (like jumps)?
+   \item What would cause them?
+\end{itemize}
+
+\section*{\textsf{Deliverables}}
+
+There are two files that you should upload to Canvas for your turn-in:
+\begin{itemize}
+   \item Your \lstinline{calc_rx_pos.py} function file
+   \item Your modified \lstinline{project6_template_LASTNAME.py} script with code for plots and
+      comments answering the questions
+\end{itemize}
+
+\section*{\textsf{Grading}}
+
+You will be graded for coming up with the correct results (90\%) and your
+analysis (10\%).  ``Correct results'' includes the correct generation of the
+requested plots (not just that your \lstinline{calc_rx_pos} function works).
+
+\end{document}
