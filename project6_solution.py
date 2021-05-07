@@ -1,10 +1,11 @@
+
 import helper as hp
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 import numpy as np
 import georinex as gr   # "pip install georinex" from command prompt launched from Anaconda to add to environment
 import ephemeris as eph
 import calc_rx_pos as crp
-from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 
 rinex_obs_filename = 'ohdt0320.21o'
 rinex_nav_filename = 'ohdt0320.21n'
@@ -85,6 +86,7 @@ for ii in range(num_epochs):
 
 
 # plotting code here
+
 sec_of_day = np.mod(time_obs_tow, SEC_PER_DAY)
 
 # figure 1: sat viz vs time (seconds of day)
@@ -130,7 +132,7 @@ plt.xlabel('East Error [m]')
 plt.ylabel('North Error [m]')
 plt.title('North vs East Error')
 
-# figure 4:  Receiver Clock Error vs Time 
+# figure 4:  Receiver Clock Error vs Time
 plt.figure()
 plt.grid()
 plt.plot(sec_of_day, dt_rx_array*1e9)
@@ -150,3 +152,4 @@ plt.ylabel('Range Residual [m]')
 plt.title('Range Residuals vs Time')
 
 plt.show()
+
